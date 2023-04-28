@@ -1,0 +1,12 @@
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_codes.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_files.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_groups.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_plan_file.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_plans.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_metas.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_prices.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_group_file_000.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_group_file_001.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_group_file_002.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_group_file_003.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D04/payer%3Dcigna/agg_price_group_file_004.parquet

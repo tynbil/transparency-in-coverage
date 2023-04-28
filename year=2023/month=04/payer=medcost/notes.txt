@@ -1,0 +1,3 @@
+Medcost does not publish TOC files so we cannot generate agg_plans.parquet or agg_plan_file.parquet files. As far as we can tell, only the rates filename contains information about the plan name.
+
+The following files were not processed due to malformed JSON: 2023-02-25_MEDCOST_MEDCOST-PREFERRED_ffs_in-network.json.gz and 2023-02-6_MagnaCarePPO_in-network.zip. The 2023-02-25_MEDCOST_MEDCOST-PREFERRED_ffs_in-network.json.gz appears to be an older version of 2023-03-28_MEDCOST_MEDCOST-PREFERRED_ffs_in-network.json.gz which was processed. We are implementing workarounds for the MagnaCarePPO file which should allow us to process it next month.
