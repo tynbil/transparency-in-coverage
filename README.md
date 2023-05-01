@@ -47,7 +47,7 @@ D select * from agg_prices.parquet limit 10;
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-These are all negotiated rates for `billing_code_id` 11489. To find out what code that it, query `agg_codes.parquet`
+These are all negotiated rates for `billing_code_id` 11489. To find out what code that is, query `agg_codes.parquet`
 
 ```sql
 D select * from agg_codes.parquet where id = 11489;
@@ -79,7 +79,7 @@ The `TC` modifier stands for "technical component" which means there was just a 
 
 The service codes describe where/how the service was delivered. There's a [frustratingly formatted PDF](https://www.cms.gov/medicare/medicare-fee-for-service-payment/physicianfeesched/downloads/website-pos-database.pdf) CMS maintains which details each service code. Cigna likes listing all of them all the time. Other payers rarely list any. 🤷‍♂️
 
-Returning to the price distribution, we see that someone's getting paid $526.02 for this EEG while someone else only gets $105.03 (suckers). Let's see who's getting paid what.
+Returning to the price distribution, we see that someone's getting paid $526.02 for this EEG while someone else only gets $105.03 (bummer). Let's see who's getting paid what.
 
 ```sql
 D select * from read_parquet('./agg_price_group_file_*.parquet') where price_id in (163, 356) order by price_id;
@@ -105,7 +105,7 @@ D select * from agg_groups.parquet where id in (52548, 36346);
 └───────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-NPIs are National Provider Identifiers and are assigned by the gov't to every healthcare professional. In group 36346, we can look up [NPI 1003266313](https://npiregistry.cms.hhs.gov/provider-view/1003266313) who appears to be employed by Prevea Ashwaubenon Health Center in Green Bay, WI. (Go Pack!) Other NPIs in the list are employed at Prevea's other clinics.
+NPIs are National Provider Identifiers and are assigned by the gov't to every healthcare professional. In group 36346, we can look up [the first NPI](https://npiregistry.cms.hhs.gov/provider-view/1003266313) who appears to be employed by Prevea Ashwaubenon Health Center in Green Bay, WI. (Go Pack!) Other NPIs in the list are employed at Prevea's other clinics.
 
 In group 52548, we see several NPIs who work at Mankato Clinic which appears to be associated with the Mayo Clinic. They get paid a more reasonable $105.03 for an EEG.
 
