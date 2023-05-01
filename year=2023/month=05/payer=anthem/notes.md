@@ -1,0 +1,1 @@
+The TOC file `2023-05-01_anthem_index.json.gz` is missing the required preamble `{"reporting_entity_name":"Anthem Inc","reporting_entity_type":"health insurance issuer","reporting_structure":[` and epilogue `]}`.

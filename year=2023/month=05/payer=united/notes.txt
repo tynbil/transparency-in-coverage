@@ -1,0 +1,5 @@
+The following rate files URLs error out. The California URL appears to be a character encoding issue. The Google Drive URL has been present for several months in the feed and should likely be removed from the index.
+
+https://uhc-tic-mrf.azureedge.net/public-mrf/2023-04-01/2023-04-01_Oxford_eviCore_in-network-rates.json
+https://uhc-tic-mrf.azureedge.net/public-mrf/2023-04-01/2023-04-01_UnitedHealthcare-of-California_INSURER_OPH-  fffd-Optum-Physical-Health_OPH-193_in-network-rates.json.gz
+https://drive.google.com/uc?export=download&id=1I4zUrop3xGbXSutl_6-4Q72gFfJHRXeH
