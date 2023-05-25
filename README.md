@@ -47,6 +47,8 @@ D select * from agg_prices.parquet limit 10;
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+Note that starting in May 2023, the `negotiated_type` column has moved from `agg_prices.parquet` to `agg_price_metas.parquet`.
+
 These are all negotiated rates for `billing_code_id` 11489. To find out what code that is, query `agg_codes.parquet`
 
 ```sql
