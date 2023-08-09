@@ -1,9 +1,0 @@
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_codes.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_eins.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_files.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_groups.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_npis.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_price_group_file.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_price_metas.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_prices.parquet
-https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D05/payer%3Doptum/agg_rates.parquet

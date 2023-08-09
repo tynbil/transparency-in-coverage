@@ -1,3 +1,0 @@
-The following rates file was not processed due to JSON formatting errors: https://hioscar-cms-tic-us-east-1.s3.amazonaws.com/oscar/davis_vision/2023-04-01/2023-03_Davis_Oscar_in-network-rates.zip
-
-We are implementing on workarounds for next month to allow us to process this file.
