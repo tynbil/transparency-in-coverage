@@ -4,9 +4,11 @@
 
 Beginning July 1st, 2022, CMS (Centers for Medicare and Medicaid) requires all healthcare payers and insurance plans to publish their negotiated rates with healthcare providers (doctors, hospitals, pharmacies, etc.) every month. This has the potential to _greatly_ change Americans' relationship with healthcare since, up to now, the real price has been hidden from view.
 
-The source data files are generally available on the web. However, they are often many 10's of gigabytes per file and, in total across all payers, are over 100 terabytes of data. Downloading, storing, processing, and searching this dataset is a daunting task.
+The source data files are generally available on the web. However, they are often many 10's of gigabytes per file and, in total across all payers, is around 1 petabyte of data per month. Downloading, storing, processing, and searching this dataset is a daunting task.
 
-We at Tynbil have been hard at work these past few months refining a processing pipeline to reduce a payer's terabytes of source data down to an easily queryable 10's of gigabytes. This repository points to the processed parquet files which you can download and use.
+We at [Tynbil](https://tynbil.com) have been hard at work these past few months refining a processing pipeline to reduce a payer's terabytes of source data down to an easily queryable 10's of gigabytes. This repository points to a sample of the processed Parquet files which you can download and explore.
+
+If you would like to see the full list of payers we process each month (a list which is constantly growing), it's at the bottom of [https://tynbil.com/payers](https://tynbil.com/payers).
 
 ## How can I use this data?
 
@@ -16,148 +18,164 @@ If you are interested in licensing these files for commercial use, please [conta
 
 ## Where is the data?
 
-The various `sources.txt` files in this repository contain links to the parquet files. There is also an associated `notes.txt` file which details any unexpected issues with the data import you should be aware of.
+The various `sources.txt` files in this repository contain links to the parquet files. There may also be an associated `notes.txt` file which details any unexpected issues with the data import you should be aware of.
 
 ## How are the data structured?
 
 Now for the fun part! The full schema for the source files is available from [CMS's Price Transparency Guide](https://github.com/CMSgov/price-transparency-guide/). The Tynbil parquet files are normalized versions of the same data so when looking up the meaning of a field (say `negotiation_arrangement`) you can refer to the same field in [CMS's in-network schema](https://github.com/CMSgov/price-transparency-guide/tree/master/schemas/in-network-rates).
 
-For exploration, we recommend [DuckDB](https://duckdb.org/) as it has excellent parquet support and is pleasantly fast.
+For exploration, we recommend [Clickhouse Local](https://clickhouse.com/blog/extracting-converting-querying-local-files-with-sql-clickhouse-local) as it has excellent parquet support and is pleasantly fast.
 
-Let's start with the `agg_prices.parquet` file from Cigna's April 2023 data.
-
-```sql
-D select * from agg_prices.parquet limit 10;
-┌───────┬─────────┬───────────────┬─────────────────┬─────────────────┐
-│  id   │ code_id │ price_meta_id │ negotiated_rate │ negotiated_type │
-│ int32 │  int32  │     int32     │  decimal(15,2)  │     varchar     │
-├───────┼─────────┼───────────────┼─────────────────┼─────────────────┤
-│   114 │   11489 │            58 │          346.89 │ fee schedule    │
-│   116 │   11489 │            58 │          432.13 │ fee schedule    │
-│   163 │   11489 │            58 │          105.03 │ fee schedule    │
-│   211 │   11489 │            58 │          677.02 │ fee schedule    │
-│   238 │   11489 │            58 │          518.35 │ fee schedule    │
-│   274 │   11489 │            58 │          470.32 │ fee schedule    │
-│   313 │   11489 │            58 │          478.69 │ fee schedule    │
-│   349 │   11489 │            58 │          359.43 │ fee schedule    │
-│   355 │   11489 │            58 │          204.93 │ fee schedule    │
-│   356 │   11489 │            58 │          526.02 │ fee schedule    │
-├───────┴─────────┴───────────────┴─────────────────┴─────────────────┤
-│ 10 rows                                                   5 columns │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-Note that starting in May 2023, the `negotiated_type` column has moved from `agg_prices.parquet` to `agg_price_metas.parquet`.
-
-These are all negotiated rates for `billing_code_id` 11489. To find out what code that is, query `agg_codes.parquet`
+Let's start with Highmark Pennsylvania's July 2023 data. First, we'll create a view to make examining the prices a little easier.
 
 ```sql
-D select * from agg_codes.parquet where id = 11489;
-┌───────┬──────────────┬───────────────────┬───────────────────────────┬─────────────────────────┐
-│  id   │ billing_code │ billing_code_type │ billing_code_type_version │ negotiation_arrangement │
-│ int32 │   varchar    │      varchar      │          varchar          │         varchar         │
-├───────┼──────────────┼───────────────────┼───────────────────────────┼─────────────────────────┤
-│ 11489 │ 95816        │ CPT               │ 2023                      │ ffs                     │
-└───────┴──────────────┴───────────────────┴───────────────────────────┴─────────────────────────┘
+:) CREATE VIEW prices AS
+SELECT
+    p.id AS price_id,
+    c.billing_code_type AS billing_code_type,
+    c.billing_code AS billing_code,
+    p.negotiated_rate AS negotiated_rate,
+    c.billing_code_type_version AS billing_code_type_version,
+    c.negotiation_arrangement AS negotiation_arrangement,
+    pm.billing_class AS billing_class,
+    pm.negotiated_type AS negotiated_type,
+    pm.billing_code_modifier AS billing_code_modifier,
+    pm.service_code AS service_code,
+    c.bundled_codes AS bundled_codes,
+    c.covered_services AS covered_services
+FROM file('prices.parquet') AS p
+LEFT JOIN file('price_metas.parquet') AS pm ON pm.id = p.price_meta_id
+INNER JOIN file('codes.parquet') AS c ON p.code_id = c.id;
+
+:) SELECT *
+FROM prices
+WHERE billing_code = '99214'
+AND billing_class = 'professional'
+LIMIT 10
+FORMAT Vertical;
+
+Row 1:
+──────
+price_id:                  -2800171617385289562
+billing_code_type:         CPT
+billing_code:              99214
+negotiated_rate:           100.39
+billing_code_type_version: 2023
+negotiation_arrangement:   ffs
+billing_class:             professional
+negotiated_type:           derived
+billing_code_modifier:     ['25','95']
+service_code:              ['10','11']
+bundled_codes:             ᴺᵁᴸᴸ
+covered_services:          ᴺᵁᴸᴸ
 ```
 
-CPT[^1] code 95816 is for a routine EEG. Let's look at the `price_meta_id` 58.
+From this we can see some of the actual reimbursement rates for an Established Patient Evaluation and Management Visit, 30-39 minutes.
 
-[^1]: CPT codes are registered trademarks of the American Medical Association which makes a lot of money from licensing their use and aggressively demands payment. This is why we don't provide a human readable description of the code. Sorry.
+We've restricted the `billing_class` to `professional` (as opposed to `institutional`) to see the physician reimbursement, not the hospital or clinic fee.
+
+The service codes describe where/how the service was delivered. There's a [frustratingly formatted PDF](https://www.cms.gov/medicare/medicare-fee-for-service-payment/physicianfeesched/downloads/website-pos-database.pdf) CMS maintains which details each service code. Service codes 10 and 11 are for telehealth and in-office. Highmark, like most of the Blues, does a pretty good job of setting these correctly. Other payers seem to ignore this field. 🤷‍♂️
+
+Billing code modifier 95 is for a synchronous telemedicine visit. Modifier 25 means this Evaluation and Management visit was likely unplanned and tacked on to a different procedure. This seems like a special case.
+
+As you work with this data, you'll find a lot of rates like this which aren't particularly useful as benchmarks since they're so specific. Let's drill down a bit to find the real bread and butter rates for a planned office visit.
 
 ```sql
-D select * from agg_price_metas.parquet where id = 58;
-┌───────┬───────────────┬─────────────────┬──────────────────────┬────────────────────────────────────────────────────────────────────────────────┐
-│  id   │ billing_class │ expiration_date │ billing_code_modif…  │                                  service_code                                  │
-│ int32 │    varchar    │      date       │      varchar[]       │                                   varchar[]                                    │
-├───────┼───────────────┼─────────────────┼──────────────────────┼────────────────────────────────────────────────────────────────────────────────┤
-│    58 │ professional  │ 9999-12-31      │ [TC]                 │ [01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,…  │
-└───────┴───────────────┴─────────────────┴──────────────────────┴────────────────────────────────────────────────────────────────────────────────┘
+:) SELECT *
+FROM prices
+WHERE (billing_code = '99214') AND (billing_class = 'professional') AND empty(billing_code_modifier) AND has(service_code, '11')
+LIMIT 10
+FORMAT Vertical;
+
+Row 1:
+──────
+price_id:                  5370871758677784184
+billing_code_type:         CPT
+billing_code:              99214
+negotiated_rate:           123.09
+billing_code_type_version: 2023
+negotiation_arrangement:   ffs
+billing_class:             professional
+negotiated_type:           derived
+billing_code_modifier:     []
+service_code:              ['11']
+bundled_codes:             ᴺᵁᴸᴸ
+covered_services:          ᴺᵁᴸᴸ
+
+Row 2:
+──────
+price_id:                  8414204045595673939
+billing_code_type:         CPT
+billing_code:              99214
+negotiated_rate:           103.27
+billing_code_type_version: 2023
+negotiation_arrangement:   ffs
+billing_class:             professional
+negotiated_type:           derived
+billing_code_modifier:     []
+service_code:              ['11','20']
+bundled_codes:             ᴺᵁᴸᴸ
+covered_services:          ᴺᵁᴸᴸ
 ```
 
-The `billing_class` can either be `professional` or `institutional`. In pre-computer times, physicians submitted claims on a CMS-1500 form while hospitals, nursing homes, etc. submitted on a UB-04 form. The number and size of the little boxes on those forms now dictate how we bill for healthcare services.
-
-The `TC` modifier stands for "technical component" which means there was just a bunch of button pushing on the EEG machine and very little that required a medical degree. Later on, when the doctor points to a spike on the chart and says "that must be when you were thinking about lunch!" she'll bill for a separate encounter.
-
-The service codes describe where/how the service was delivered. There's a [frustratingly formatted PDF](https://www.cms.gov/medicare/medicare-fee-for-service-payment/physicianfeesched/downloads/website-pos-database.pdf) CMS maintains which details each service code. Cigna likes listing all of them all the time. Other payers rarely list any. 🤷‍♂️
-
-Returning to the price distribution, we see that someone's getting paid $526.02 for this EEG while someone else only gets $105.03 (bummer). Let's see who's getting paid what.
+Much better. Now let's find who gets to bill these rates.
 
 ```sql
-D select * from read_parquet('./agg_price_group_file_*.parquet') where price_id in (163, 356) order by price_id;
-┌──────────┬──────────┬──────────┐
-│ price_id │ group_id │ file_ids │
-│  int32   │  int32   │ int32[]  │
-├──────────┼──────────┼──────────┤
-│      163 │    52548 │ [64]     │
-│      356 │    36346 │ [64]     │
-└──────────┴──────────┴──────────┘
+SELECT DISTINCT
+    pgf.price_id AS price_id,
+    arrayJoin(npis) AS npi,
+    pgf.file_id as file_id
+FROM file('price_group_file.parquet') AS pgf
+INNER JOIN file('groups.parquet') AS g ON g.id = pgf.group_id
+WHERE pgf.price_id IN (5370871758677784184, 8414204045595673939)
+ORDER BY
+    1 ASC,
+    2 ASC;
+
+┌────────────price_id─┬────────npi─┬──────────────file_id─┐
+│ 5370871758677784184 │ 1023077856 │ 13197186521333479035 │
+│ 5370871758677784184 │ 1023077856 │ 12740363278053471596 │
+└─────────────────────┴────────────┴──────────────────────┘
+┌────────────price_id─┬────────npi─┬─────────────file_id─┐
+│ 8414204045595673939 │ 1538361621 │ 2575527443172353476 │
+│ 8414204045595673939 │ 1538361621 │ 1576220056349810356 │
+│ 8414204045595673939 │ 1689882110 │ 2575527443172353476 │
+│ 8414204045595673939 │ 1689882110 │ 1576220056349810356 │
+└─────────────────────┴────────────┴─────────────────────┘
 ```
 
-Looking up the two `group_id`'s, we get a list of NPIs.
+The first rate of $123.09 per office visit is a [rheumatologist](https://npiregistry.cms.hhs.gov/provider-view/1023077856) in Allentown, PA. The second rate of $103.27 is for an RN and PA in West Virginia.
+
+Let's see which plans these rates belong to by looking up their file_id's.
 
 ```sql
-D select * from agg_groups.parquet where id in (52548, 36346);
-┌───────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  id   │                                                                  npis                                                                   │
-│ int32 │                                                                 int32[]                                                                 │
-├───────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 36346 │ [1003266313, 1194353763, 1225317795, 1386669497, 1396213476, 1396354320, 1427032127, 1447245840, 1467403287, 1477821445, 1497861983, …  │
-│ 52548 │ [1003561234, 1003895095, 1013008366, 1013149079, 1013205947, 1013995034, 1013995042, 1013996941, 1023320645, 1023471406, 1023767753, …  │
-└───────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+:) SELECT DISTINCT
+    f.id AS file_id,
+    f.filename AS filename,
+    p.plan_name AS plan_name
+FROM file('files.parquet') AS f
+INNER JOIN file('plan_file.parquet') AS pf ON pf.file_id = f.id
+INNER JOIN file('plans.parquet') AS p ON p.plan_id = pf.plan_id
+WHERE f.id IN (13197186521333479035, 12740363278053471596, 2575527443172353476, 1576220056349810356)
+
+┌──────────────file_id─┬─filename───────────────────────────────────────────────┬─plan_name─────────────────────────────────────────────────────┐
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ HDHP BCBS PPO:Highmark, Inc.                                  │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ HDHP BCBS PPO:Highmark, Inc.:378000008010                     │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ HDHP PPO BLUE:Highmark, Inc.:378000008010                     │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ PPO BLUE:Highmark, Inc.:378000008010                          │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ Community Blue Flex HDHP PPO:Highmark, Inc.:378000000088      │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ Community Blue Flex HDHP PPO:Highmark, Inc.:378000000089      │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ Community Blue Flex HDHP PPO:Highmark, Inc.:378000000106      │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ HDHP PPO BLUE:Highmark, Inc.:378000000328                     │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ PPO BLUE:Highmark, Inc.:378000000328                          │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ BLUE CARD:Highmark, Inc.:378000008010                         │
+│ 13197186521333479035 │ 2023-07_378_49T0_in-network-rates_01_of_06.json.gz     │ Community Blue Flex HDHP PPO:Highmark, Inc.:378000008010      │
 ```
 
-NPIs are National Provider Identifiers and are assigned by the gov't to every healthcare professional. In group 36346, we can look up [the first NPI](https://npiregistry.cms.hhs.gov/provider-view/1003266313) who appears to be employed by Prevea Ashwaubenon Health Center in Green Bay, WI. (Go Pack!) Other NPIs in the list are employed at Prevea's other clinics.
-
-In group 52548, we see several NPIs who work at Mankato Clinic which appears to be associated with the Mayo Clinic. They get paid a more reasonable $105.03 for an EEG.
-
-Next we have the `file_ids` column which tells us the source file this rate came from.
-
-```sql
-D select * from agg_files.parquet where id = 64;
-┌───────┬─────────────────────────────────────────────────────────────────────────────────────┐
-│  id   │                                      filename                                       │
-│ int32 │                                       varchar                                       │
-├───────┼─────────────────────────────────────────────────────────────────────────────────────┤
-│    64 │ 2023-04-01_upper-midwest-affiliation-partner_cigna-open-access_in-network-rates.zip │
-└───────┴─────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-From the file name we can surmise that this file is part of several different plans. Let's see which plans reference this file.
-
-```sql
-D select
->   p.*
-> from
->   agg_plan_file.parquet pf
->   join agg_plans.parquet p on p.id = pf.plan_id
-> where
->   file_id = 64
-> limit
->   10;
-┌───────┬──────────────────────────────────────────────────────────────┬──────────────┬───────────┬──────────────────┐
-│  id   │                          plan_name                           │ plan_id_type │  plan_id  │ plan_market_type │
-│ int64 │                           varchar                            │   varchar    │  varchar  │     varchar      │
-├───────┼──────────────────────────────────────────────────────────────┼──────────────┼───────────┼──────────────────┤
-│  1894 │ PATHWELL PPO Nicolson Construction, Inc.                     │ ein          │ 900026476 │ group            │
-│  1895 │ PATHWELL PPO Method Studio                                   │ ein          │ 800138187 │ group            │
-│  1896 │ PATHWELL PPO MFOC Holdco, Inc.                               │ ein          │ 454078144 │ group            │
-│  1897 │ PATHWELL PPO Signifyd, Inc.                                  │ ein          │ 453073312 │ group            │
-│  1899 │ PATHWELL PPO Renren U.S. HoldCo, Inc                         │ ein          │ 822062432 │ group            │
-│  1900 │ PATHWELL PPO Parker-Migliorini International, LLC            │ ein          │ 453860089 │ group            │
-│  1901 │ PATHWELL PPO Acme Construction Supply Co., Inc.              │ ein          │ 930805825 │ group            │
-│  1902 │ PATHWELL PPO New Orleans-Baton Rouge Steamship Pilots Assoc. │ ein          │ 720389381 │ group            │
-│  1904 │ PATHWELL PPO CCI Network Services, LLC                       │ ein          │ 870709990 │ group            │
-│  1919 │ PATHWELL PPO BirdEye, Inc.                                   │ ein          │ 454836337 │ group            │
-├───────┴──────────────────────────────────────────────────────────────┴──────────────┴───────────┴──────────────────┤
-│ 10 rows                                                                                                  5 columns │
-└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-We take this moment to remind the general public that most folks with employer sponsored health care are _insured_ by their employer, not Cigna, Blue Cross, Humana, etc. Those companies merely administer the billing and negotiate rates on behalf of the employers which is why we normally refer to them as "payers". In this instance, Cigna runs the plans for these employers and includes the upper midwest open access network in all of them.
+And this is where things start to get a little messy. These rates are in Highmark's PPO network and appear to be in most, if not all, the PPO variations. Unfortunately, there is no standard way of referring to a payer's network, but we at Tynbil can help you with the mapping if you wish.
 
 ## Where's the rest of the data?
 
-You mean for all the other 100+ insurers and payers in this great big country of ours? We're working on it! We decided to publish this sample from April, 2023, as a start and we'll be ramping up our ingestion pipeline to collect as much as we can for May, 2023, onwards.
+You mean for all the other 100+ payers in this great big country of ours? We process them each month! The current list of processed payers is available on [our website](https://tynbil.com/payers).
 
 If there is a particular payer you are interested in, please [let us know](mailto:brendan@tynbil.com).

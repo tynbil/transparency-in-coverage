@@ -1,0 +1,10 @@
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/codes.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/ein_group.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/ein_npi.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/files.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/groups.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/plan_file.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/plans.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/price_group_file.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/price_metas.parquet
+https://pub-ed48e84183f644eab228927965111365.r2.dev/year%3D2023/month%3D07/payer%3Dhmpa/prices.parquet
